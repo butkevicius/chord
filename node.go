@@ -44,6 +44,8 @@ type Config struct {
 
 	Timeout time.Duration
 	MaxIdle time.Duration
+
+	Storage Storage
 }
 
 func (c *Config) Validate() error {
@@ -72,11 +74,17 @@ func NewNode(cnf *Config, joinNode *models.Node) (*Node, error) {
 	if err := cnf.Validate(); err != nil {
 		return nil, err
 	}
+
+	storage := cnf.Storage
+	if storage == nil {
+		storage = NewMapStore(cnf.Hash)
+	}
+
 	node := &Node{
 		Node:       new(models.Node),
 		shutdownCh: make(chan struct{}),
 		cnf:        cnf,
-		storage:    NewMapStore(cnf.Hash),
+		storage:    storage,
 	}
 
 	var nID string
